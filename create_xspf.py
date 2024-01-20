@@ -38,7 +38,7 @@ class Playlist:
             image_url = ET.SubElement(track, 'image')
             image_url.text = image_url_
         if genre_ != '':
-            genre_str = ", ".join(genre_)
+            genre_str = genre_
             genre = ET.SubElement(track, 'annotation')
             genre.text = genre_str
         if share_url_ != '':
@@ -53,14 +53,20 @@ class Playlist:
 
 def create_pl(outfile):
     playlist = Playlist()
-    with req.urlopen("https://radiorecord.ru/api/stations") as url:
+    url = "https://radiorecord.ru/api/stations"
+    # we will work ass Mozilla, because user-agent python 3.x caused error 403
+    headers = {"User-Agent": "Mozilla/5.0"}
+    reg_val = req.Request(url, headers=headers)
+    with req.urlopen(reg_val) as url:
         data = json.loads(url.read().decode())
         for station in data['result']['stations']:
+            icon_url = station['icon_fill_colored'].split('?')[0]
             genres = []
             for genre in station['genre']:
                 genres.append(genre['name'])
+            genres_str = ', '.join(genres)
             playlist.add_track(station['stream_320'], station['title'], station['tooltip'],
-                               station['icon_fill_colored'], genres, station['shareUrl'])
+                               icon_url, genres_str, station['shareUrl'])
     ET.indent(playlist.tree, "\t", level=0)
     playlist_xml = playlist.get_playlist()
     playlist.tree.write(outfile,
