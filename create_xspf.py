@@ -1,7 +1,10 @@
+from _datetime import datetime
 import json
+import os
+import shutil
+import sys
 import urllib.request as req
 import xml.etree.ElementTree as ET
-import sys
 
 
 class Playlist:
@@ -79,9 +82,38 @@ def main():
     if len(sys.argv) > 1:
         if sys.argv[1] != '':
             outfile = sys.argv[1]
-    create_pl(outfile)
-    print("Playlist created in file "+outfile)
-    print("Done.")
+
+    result = copy_rename_file(outfile)
+    if result == 1:
+        create_pl(outfile)
+        print("Playlist created in file "+outfile)
+        print("Done.")
+    else:
+        print("Error: the file was not renamed and copied")
+
+
+def copy_rename_file(file_path):
+    if os.path.exists(file_path):
+        filename, file_extension = os.path.splitext(file_path)
+        current_time = datetime.now().strftime('%Y%m%d')
+        file_number = 0
+        for file_number in range(100):
+            if file_number == 0:
+                new_file_name = f"{filename}_{current_time}{file_extension}.bak"
+            else:
+                new_file_name = f"{filename}_{current_time}({file_number}){file_extension}.bak"
+            if not os.path.exists(new_file_name):
+                shutil.copy(file_path, new_file_name)
+                print(f"The file has been copied and renamed to: {new_file_name}")
+                return 1
+            else:
+                file_number += 1
+
+        print("The limit of 100 copies has been exceeded")
+        return 0
+    else:
+        print("The file does not exist")
+        return 0
 
 
 if __name__ == '__main__':
