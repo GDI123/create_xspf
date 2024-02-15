@@ -77,21 +77,6 @@ def create_pl(outfile):
                         method="xml")
 
 
-def main():
-    outfile = 'rr_stations.xspf'
-    if len(sys.argv) > 1:
-        if sys.argv[1] != '':
-            outfile = sys.argv[1]
-
-    result = copy_rename_file(outfile)
-    if result == 1:
-        create_pl(outfile)
-        print("Playlist created in file "+outfile)
-        print("Done.")
-    else:
-        print("Error: the file was not renamed and copied")
-
-
 def copy_rename_file(file_path):
     if os.path.exists(file_path):
         filename, file_extension = os.path.splitext(file_path)
@@ -104,7 +89,7 @@ def copy_rename_file(file_path):
                 new_file_name = f"{filename}_{current_time}({file_number}){file_extension}.bak"
             if not os.path.exists(new_file_name):
                 shutil.copy(file_path, new_file_name)
-                print(f"The file has been copied and renamed to: {new_file_name}")
+                print(f"Old playlist saved as: {new_file_name}")
                 return 1
             else:
                 file_number += 1
@@ -112,9 +97,69 @@ def copy_rename_file(file_path):
         print("The limit of 100 copies has been exceeded")
         return 0
     else:
-        print("The file does not exist")
+        # print("The file does not exist")
         return 0
+
+
+def parse_file(file_path):
+    try:
+        root = ET.parse(file_path).getroot()
+        titles = []
+        for track in root.iter():
+            if 'title' in track.tag:
+                titles.append(track.text)
+        return titles
+    except FileNotFoundError:
+        # print(f'File {file_path} not found')
+        return []
+    except Exception as e:
+        print(f'An error occurred while parsing the file: {str(e)}')
+        return []
+
+
+def compare_lists(old_list, new_list):
+    added_items = [item for item in new_list if item not in old_list]
+    removes_items = [item for item in old_list if item not in new_list]
+    return added_items, removes_items
+
+
+def print_stations(old_list, new_list):
+    added, removed = compare_lists(old_list, new_list)
+    if not added and not removed:
+        print("No new stations found")
+    else:
+        if added:
+            print("New stations:")
+            for station in added:
+                print('\t', station)
+        if removed:
+            print("Removed stations:")
+            for station in removed:
+                print('\t', station)
+
+
+def main():
+    outfile = 'rr_stations.xspf'
+    if len(sys.argv) > 1:
+        if sys.argv[1] != '':
+            outfile = sys.argv[1]
+
+    if not os.path.exists(outfile):
+        create_pl(outfile)
+        print("Playlist created in file " + outfile)
+    else:
+        old_list = parse_file(outfile)
+        result = copy_rename_file(outfile)
+        if result == 1:
+            create_pl(outfile)
+            print("Playlist created in file " + outfile)
+        else:
+            print("Error: the file was not renamed and copied")
+            return -1
+        new_list = parse_file(outfile)
+        print_stations(old_list, new_list)
 
 
 if __name__ == '__main__':
     main()
+

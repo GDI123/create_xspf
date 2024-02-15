@@ -1,4 +1,4 @@
-Create VLC playlist for all [**RadioRecord**](https://radiorecord.ru) stations (Aug 10, 2021). Script will get stations list directly from RadioRecord website and fill Title, Album (as station description), Logo image, Stream URL for 320 bps and URL to station web page.
+Create VLC playlist for all [**RadioRecord**](https://radiorecord.ru) stations. Script will get stations list directly from RadioRecord website and fill Title, Album (as station description), Logo image, Stream URL for 320 bps and URL to station web page.
 
 Running script without arguments will create **rr_stations.xspf** in current folder.
 
