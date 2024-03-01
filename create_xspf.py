@@ -56,9 +56,9 @@ class Playlist:
 
 def create_pl(outfile):
     playlist = Playlist()
-    url = "https://radiorecord.ru/api/stations"
-    # we will work ass Mozilla, because user-agent python 3.x caused error 403
-    headers = {"User-Agent": "Mozilla/5.0"}
+    url = 'https://radiorecord.ru/api/stations'
+    # we will work as Mozilla, because user-agent python 3.x caused error 403
+    headers = {'User-Agent': 'Mozilla/5.0'}
     reg_val = req.Request(url, headers=headers)
     with req.urlopen(reg_val) as url:
         data = json.loads(url.read().decode())
@@ -74,7 +74,7 @@ def create_pl(outfile):
     playlist_xml = playlist.get_playlist()
     playlist.tree.write(outfile,
                         xml_declaration=True, encoding='utf-8',
-                        method="xml")
+                        method='xml')
 
 
 def copy_rename_file(file_path):
@@ -84,20 +84,20 @@ def copy_rename_file(file_path):
         file_number = 0
         for file_number in range(100):
             if file_number == 0:
-                new_file_name = f"{filename}_{current_time}{file_extension}.bak"
+                new_file_name = f'{filename}_{current_time}{file_extension}.bak'
             else:
-                new_file_name = f"{filename}_{current_time}({file_number}){file_extension}.bak"
+                new_file_name = f'{filename}_{current_time}({file_number}){file_extension}.bak'
             if not os.path.exists(new_file_name):
                 shutil.copy(file_path, new_file_name)
-                print(f"Old playlist saved as: {new_file_name}")
+                print(f'Old playlist saved as: {new_file_name}')
                 return 1
             else:
                 file_number += 1
 
-        print("The limit of 100 copies has been exceeded")
+        print('The limit of 100 copies has been exceeded')
         return 0
     else:
-        # print("The file does not exist")
+        # print('The file does not exist')
         return 0
 
 
@@ -126,14 +126,14 @@ def compare_lists(old_list, new_list):
 def print_stations(old_list, new_list):
     added, removed = compare_lists(old_list, new_list)
     if not added and not removed:
-        print("No new stations found")
+        print('No new stations found')
     else:
         if added:
-            print("New stations:")
+            print('New stations:')
             for station in added:
                 print('\t', station)
         if removed:
-            print("Removed stations:")
+            print('Removed stations:')
             for station in removed:
                 print('\t', station)
 
@@ -144,20 +144,16 @@ def main():
         if sys.argv[1] != '':
             outfile = sys.argv[1]
 
-    if not os.path.exists(outfile):
+    old_list = parse_file(outfile)
+    result = copy_rename_file(outfile)
+    if result == 1:
         create_pl(outfile)
-        print("Playlist created in file " + outfile)
+        print('Playlist created in file ' + outfile)
     else:
-        old_list = parse_file(outfile)
-        result = copy_rename_file(outfile)
-        if result == 1:
-            create_pl(outfile)
-            print("Playlist created in file " + outfile)
-        else:
-            print("Error: the file was not renamed and copied")
-            return -1
-        new_list = parse_file(outfile)
-        print_stations(old_list, new_list)
+        print('Error: the file was not renamed and copied')
+        return -1
+    new_list = parse_file(outfile)
+    print_stations(old_list, new_list)
 
 
 if __name__ == '__main__':
