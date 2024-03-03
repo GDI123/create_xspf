@@ -94,8 +94,8 @@ def copy_rename_file(file_path):
             else:
                 file_number += 1
 
-        print('The limit of 100 copies has been exceeded')
-        return 0
+        print('We already create 100 backups of playlists: to continue delete some old backups or try again tomorrow.')
+        return -1
     else:
         # print('The file does not exist')
         return 0
@@ -144,15 +144,13 @@ def main():
         if sys.argv[1] != '':
             outfile = sys.argv[1]
 
-    old_list = parse_file(outfile)
     result = copy_rename_file(outfile)
-    if result == 1:
-        create_pl(outfile)
-        print('Playlist created in file ' + outfile)
-    else:
-        print('Error: the file was not renamed and copied')
+    if result == -1:
         return -1
+    old_list = parse_file(outfile)
+    create_pl(outfile)
     new_list = parse_file(outfile)
+    print('Playlist created in file ' + outfile)
     print_stations(old_list, new_list)
 
 
